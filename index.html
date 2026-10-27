@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文化祭2026 鉄道同好会 運行・回路制御マニュアル</title>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sub: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-yellow: #eab308;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 2px solid var(--accent-blue);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-room {
+      background-color: var(--accent-blue);
+      color: #0f172a;
+      font-weight: bold;
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      background-color: var(--bg-card);
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 14px 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+      background-color: rgba(56, 189, 248, 0.08);
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin: 14px 0 8px;
+      color: #e2e8f0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .alert-box {
+      background-color: rgba(239, 68, 68, 0.15);
+      border-left: 4px solid var(--accent-red);
+      padding: 14px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .alert-box.warn {
+      background-color: rgba(234, 179, 8, 0.15);
+      border-left-color: var(--accent-yellow);
+    }
+
+    .alert-box strong {
+      color: #fca5a5;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .alert-box.warn strong {
+      color: #fde047;
+    }
+
+    /* Map Layout */
+    .room-map {
+      position: relative;
+      background-color: #0f172a;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      height: 260px;
+      padding: 20px;
+      margin-top: 10px;
+    }
+
+    .track-5inch {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      bottom: 20px;
+      width: 75%;
+      border-left: 4px solid var(--accent-red);
+      border-bottom: 4px solid var(--accent-red);
+      border-bottom-left-radius: 90px;
+      pointer-events: none;
+    }
+
+    .track-label {
+      position: absolute;
+      bottom: 26px;
+      left: 50px;
+      color: #f87171;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .island-plarail {
+      position: absolute;
+      top: 35px;
+      left: 18%;
+      width: 55%;
+      height: 65px;
+      background-color: #991b1b;
+      border: 2px solid #f87171;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .island-ngauge {
+      position: absolute;
+      top: 120px;
+      left: 18%;
+      width: 55%;
+      height: 75px;
+      background-color: #991b1b;
+      border: 2px solid #f87171;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .door-box {
+      position: absolute;
+      right: -2px;
+      top: 70px;
+      width: 36px;
+      height: 80px;
+      background-color: #1e3a8a;
+      border: 2px solid var(--accent-blue);
+      writing-mode: vertical-rl;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    /* Wi-Fi Connection Box */
+    .wifi-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-main);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .copy-btn {
+      background-color: var(--bg-sub);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .copy-btn:hover {
+      background-color: var(--accent-blue);
+      color: #0f172a;
+    }
+
+    /* Checklist Styles */
+    .progress-wrap {
+      background-color: var(--bg-main);
+      border-radius: 999px;
+      height: 22px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #22c55e, #38bdf8);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background-color: rgba(15, 23, 42, 0.6);
+      margin-bottom: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .check-item:hover {
+      border-color: var(--border);
+    }
+
+    .check-item.checked {
+      background-color: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      accent-color: var(--accent-green);
+      cursor: pointer;
+    }
+
+    .step-num {
+      background-color: var(--bg-sub);
+      color: var(--accent-blue);
+      font-weight: bold;
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* Simulator Styles */
+    .sim-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .sim-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .board-box {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      border: 4px solid #cbd5e1;
+      position: relative;
+    }
+
+    .board-title {
+      font-weight: bold;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #94a3b8;
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .led-group {
+      background-color: #e2e8f0;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .led-group-title {
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #334155;
+    }
+
+    .led-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .led-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: bold;
+    }
+
+    .led-bulb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background-color: #64748b;
+      border: 2px solid #475569;
+      margin-bottom: 4px;
+      transition: all 0.2s;
+    }
+
+    .led-bulb.on-green {
+      background-color: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
+      border-color: #15803d;
+    }
+
+    .led-bulb.on-red {
+      background-color: #ef4444;
+      box-shadow: 0 0 12px #ef4444;
+      border-color: #b91c1c;
+    }
+
+    .relay-box {
+      background-color: #1e293b;
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+      margin: 10px 0;
+      transition: all 0.2s;
+    }
+
+    .relay-box.active {
+      background-color: #15803d;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+
+    /* Smartphone Web UI Mock */
+    .phone-ui {
+      background-color: #090d16;
+      border: 3px solid #334155;
+      border-radius: 16px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .phone-left, .phone-right {
+      background-color: #111827;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .speed-display {
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    .speed-val {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: var(--accent-blue);
+    }
+
+    .dir-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #0f172a;
+      background-color: var(--accent-green);
+    }
+
+    .dir-btn.rev {
+      background-color: var(--accent-yellow);
+    }
+
+    .estop-pad {
+      flex: 1;
+      min-height: 150px;
+      border-radius: 8px;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .estop-pad.stopped {
+      background-color: var(--accent-red);
+    }
+
+    .estop-pad.holding {
+      background-color: var(--accent-yellow);
+      color: #0f172a;
+    }
+
+    .estop-pad.released {
+      background-color: var(--accent-green);
+      color: #0f172a;
+    }
+
+    .sim-switch-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .toggle-btn {
+      background-color: var(--bg-sub);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: bold;
+    }
+
+    .toggle-btn.active {
+      background-color: var(--accent-green);
+      color: #0f172a;
+      border-color: #16a34a;
+    }
+
+    .meter-box {
+      background-color: #020617;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+
+    .meter-val {
+      font-size: 1.6rem;
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    ul.clean-list {
+      padding-left: 20px;
+    }
+
+    ul.clean-list li {
+      margin-bottom: 6px;
+    }
+
+    .timeline-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .timeline-table th, .timeline-table td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
+    }
+
+    .timeline-table th {
+      background-color: var(--bg-sub);
+      color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🚃 文化祭2026 運行＆回路制御マニュアル</h1>
+    <span class="badge-room">会場：8棟1階 8101教室（後ろ側）</span>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-overview', this)">📍 会場・接続概要</button>
+    <button class="tab-btn" onclick="switchTab('tab-checklist', this)">✅ 全21工程手順書</button>
+    <button class="tab-btn" onclick="switchTab('tab-simulator', this)">🎛️ 基板＆動作シミュレータ</button>
+    <button class="tab-btn" onclick="switchTab('tab-videos', this)">🎬 動画解説・危険予知</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- TAB 1: 会場・接続概要 -->
+    <section id="tab-overview" class="tab-content active">
+      <div class="alert-box">
+        <strong>⚠️ 最重要：電源の投入・切断順序の厳守</strong>
+        ・<b>つなぐ時</b>：必ずUSBケーブルを接続し、ESP32の電源（Power LED）が入ったことを確認してから鉛蓄電池（24V）をつなぐこと。<br>
+        ・<b>外す時</b>：必ず鉛蓄電池（24V）を取り外してから、最後にUSBケーブルを抜くこと。<br>
+        ・<b>停車中</b>：走行している時以外は、常に物理的な非常停止スイッチをかけておくこと。
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>📱 ESP32 スマホコントローラ接続情報</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            スマートフォンのWi-Fiで以下のSSIDに接続後、ブラウザのアドレスバーにIPアドレスを入力してコントローラ画面を開きます。
+          </p>
+          <div class="wifi-item">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">SSID</div>
+              <strong>211はお婿さん</strong>
+            </div>
+            <button class="copy-btn" onclick="copyText('211はお婿さん', this)">コピー</button>
+          </div>
+          <div class="wifi-item">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Password</div>
+              <strong>211haoyomesan</strong>
+            </div>
+            <button class="copy-btn" onclick="copyText('211haoyomesan', this)">コピー</button>
+          </div>
+          <div class="wifi-item">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">接続先IPアドレス (URL)</div>
+              <strong>http://192.168.4.1</strong>
+            </div>
+            <button class="copy-btn" onclick="copyText('http://192.168.4.1', this)">コピー</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🎪 出店場所・企画内容・担当</h2>
+          <ul class="clean-list">
+            <li><strong>場所</strong>：8棟1階 8101教室（現3M教室 / マルチメディアルーム）の後ろ側（※前側は4E有志が使用）</li>
+            <li><strong>Nゲージ走行</strong>：鉄道模型コンテストのモジュールを組み込み展示</li>
+            <li><strong>プラレール走行</strong>：自作車両があれば持参歓迎</li>
+            <li><strong>5インチゲージ乗車体験</strong>：新型客車車両を製造・運用（担当：市川先輩、西先輩、松永）</li>
+            <li><strong>展示企画</strong>：同好会員撮影写真の展示、描いた絵を8101廊下に掲示</li>
+          </ul>
+          <div class="alert-box warn" style="margin-top: 12px; margin-bottom: 0;">
+            <strong>👀 Nゲージ・プラレール監視の諸注意</strong>
+            ・常に1人以上で監視すること。<br>
+            ・立ち入り禁止エリアに入らないよう声かけを行うこと（鉄コンで使用した黄色と黒のロープでの仕切りも活用）。
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🗺️ 8101教室 室内配置図</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          出入口から見て中央にプラレールとNゲージを配置し、壁際（左〜下側）に沿って5インチゲージの軌道を敷設します。
+        </p>
+        <div class="room-map">
+          <div class="track-5inch"></div>
+          <div class="track-label">━ 5インチゲージ軌道（乗車体験ライン）</div>
+          <div class="island-plarail">プラレール展示エリア</div>
+          <div class="island-ngauge">Nゲージ展示エリア（鉄コンモジュール）</div>
+          <div class="door-box">出入口</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔧 用語とハードウェア構成の定義</h2>
+        <div class="grid-2">
+          <div>
+            <h3>電源・バッテリ関連</h3>
+            <ul class="clean-list" style="font-size: 0.9rem;">
+              <li><strong>制御電源</strong>：USBで給電されるマイコン（ESP32）動作等用の 5V または 3.3V 電源。</li>
+              <li><strong>駆動電源</strong>：鉛蓄電池より供給されるモータ駆動用の 24V 電源。</li>
+              <li><strong>鉛蓄電池（通称：なまちく）</strong>：単体起電力12V。5インチゲージでは2個直列にして24Vで運用。重量物のため落下・極性間違いに要注意。</li>
+            </ul>
+          </div>
+          <div>
+            <h3>スイッチ・基板・冷却関連</h3>
+            <ul class="clean-list" style="font-size: 0.9rem;">
+              <li><strong>Base基板 ＆ MD10C</strong>：専用設計の制御基板（右側）と既製品のモータドライバMD10C（左側）の組み合わせ。旧基板の課題（物理非常停止なし・電流計測不可・有線非対応）を解消。</li>
+              <li><strong>非常停止スイッチ</strong>：赤ボタンを押すと非常停止（遮断）、矢印方向にひねると解除。</li>
+              <li><strong>主電源スイッチ</strong>：基板ボックス（プラケース）の蓋に設置。回路構成上は非常停止スイッチと同じで、どちらを切っても駆動電源が遮断される。</li>
+              <li><strong>ケースファン（2個）</strong>：発熱増大対策としてプラケース内の熱ごもりを防ぐため2個搭載（5V駆動推奨）。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: 全21工程手順書 -->
+    <section id="tab-checklist" class="tab-content">
+      <div class="card">
+        <h2>
+          <span>📋 運行・点検チェックリスト（全21ステップ）</span>
+          <button class="copy-btn" onclick="resetChecklist()">チェックをリセット</button>
+        </h2>
+        <div class="progress-wrap">
+          <div id="check-bar" class="progress-bar"></div>
+          <div id="check-text" class="progress-text">0 / 21 完了 (0%)</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          タップするとチェック状態が保存されます。番号順（1〜21）を飛ばさずに確認してください。
+        </p>
+
+        <div id="checklist-container"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: 基板＆動作シミュレータ -->
+    <section id="tab-simulator" class="tab-content">
+      <div class="card">
+        <h2>🎛️ Base基板（LED 12個）＆ スマホコン連動シミュレータ</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          2分33秒の「実際の動作」動画の挙動を忠実に再現しています。以下のスイッチを順番にONにし、スマホ画面の赤い非常停止ボタンを<b>3秒長押し</b>してリレーが動作する様子を確認してください。
+        </p>
+
+        <div class="sim-switch-row">
+          <button id="btn-usb" class="toggle-btn" onclick="toggleSim('usb')">① USB制御電源 (5V/3.3V)</button>
+          <button id="btn-wifi" class="toggle-btn" onclick="toggleSim('wifi')">② スマホWi-Fi接続 (192.168.4.1)</button>
+          <button id="btn-batt" class="toggle-btn" onclick="toggleSim('batt')">③ 24V駆動電源 + ケース主電源ON</button>
+          <button id="btn-sw1" class="toggle-btn active" onclick="toggleSim('sw1')">物理SW1 (導通)</button>
+          <button id="btn-sw2" class="toggle-btn active" onclick="toggleSim('sw2')">物理SW2 (導通)</button>
+          <button id="btn-sw3" class="toggle-btn active" onclick="toggleSim('sw3')">物理SW3 (導通)</button>
+          <button id="btn-oc" class="toggle-btn" onclick="toggleSim('oc')" style="border-color: var(--accent-red);">⚡ 過電流テスト (O.C.)</button>
+        </div>
+
+        <div class="sim-layout">
+          <!-- Left: Base Board LED View -->
+          <div class="board-box">
+            <div class="board-title">
+              <span>Base基板 + MD10C 状態モニタ</span>
+              <span style="font-size: 0.75rem;">搭載LED：計12個</span>
+            </div>
+
+            <div class="led-group">
+              <div class="led-group-title">1. 電源系LED（2個）＆ ステータス系LED（3個）</div>
+              <div class="led-row">
+                <div class="led-unit"><div id="led-5v" class="led-bulb"></div>5V</div>
+                <div class="led-unit"><div id="led-3v3" class="led-bulb"></div>3.3V</div>
+                <div class="led-unit"><div id="led-pwr" class="led-bulb"></div>Power(ESP)</div>
+                <div class="led-unit"><div id="led-ctrl" class="led-bulb"></div>CTRL(接続)</div>
+                <div class="led-unit"><div id="led-oc" class="led-bulb"></div>O.C.(過電流)</div>
+              </div>
+            </div>
+
+            <div class="led-group">
+              <div class="led-group-title">2. 非常停止LED（4個：すべて点灯時のみ非常停止解除）</div>
+              <div class="led-row">
+                <div class="led-unit"><div id="led-es-rem" class="led-bulb"></div>遠隔(手前)</div>
+                <div class="led-unit"><div id="led-es-1" class="led-bulb"></div>物理SW1</div>
+                <div class="led-unit"><div id="led-es-2" class="led-bulb"></div>物理SW2</div>
+                <div class="led-unit"><div id="led-es-3" class="led-bulb"></div>物理SW3</div>
+              </div>
+            </div>
+
+            <div class="led-group">
+              <div class="led-group-title">3. 駆動系LED（3個：左から 出力 / 入力 / リレー）</div>
+              <div class="led-row">
+                <div class="led-unit"><div id="led-drv-out" class="led-bulb"></div>出力(out)</div>
+                <div class="led-unit"><div id="led-drv-in" class="led-bulb"></div>入力(in)</div>
+                <div class="led-unit"><div id="led-drv-rel" class="led-bulb"></div>リレー</div>
+              </div>
+            </div>
+
+            <div id="relay-status" class="relay-box">
+              リレー状態：遮断中 (OFF)
+            </div>
+
+            <div class="meter-box">
+              <div style="font-size: 0.75rem; color: #94a3b8;">F-NRSI デジタルマルチメータ出力電圧 (M1)</div>
+              <div id="meter-voltage" class="meter-val">0.00 V</div>
+            </div>
+          </div>
+
+          <!-- Right: Smartphone Controller UI -->
+          <div>
+            <div class="phone-ui">
+              <div class="phone-left">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                  対象: <b>M1 & M2</b> | 制限: 100%
+                </div>
+                <div class="speed-display">
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">出力速度</div>
+                  <div id="ui-speed-text" class="speed-val">0%</div>
+                </div>
+                <input id="ui-slider" type="range" min="0" max="100" value="0" style="width: 100%; margin: 10px 0;" oninput="updateSpeed(this.value)" disabled>
+                <button id="ui-dir-btn" class="dir-btn" onclick="toggleDirection()">回転方向: 正転</button>
+              </div>
+
+              <div class="phone-right">
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">
+                  電流: <span id="ui-curr">0.00</span> A
+                </div>
+                <div id="ui-io34-banner" style="background:#450a0a; color:#fca5a5; font-size:0.72rem; text-align:center; padding:4px; border-radius:4px; margin-bottom:8px;">
+                  IO34非常停止: 未印加 (停止)
+                </div>
+                <button id="ui-estop-btn" class="estop-pad stopped"
+                  onmousedown="startEstopHold()" onmouseup="cancelEstopHold()" onmouseleave="cancelEstopHold()"
+                  ontouchstart="startEstopHold(event)" ontouchend="cancelEstopHold()">
+                  <div id="estop-main-label" style="font-size: 0.95rem;">非常停止出力 (IO33): LOW</div>
+                  <div id="estop-sub-label" style="font-size: 0.75rem; margin-top: 6px; opacity: 0.9;">(3秒長押しで許可/HIGH)</div>
+                </button>
+              </div>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+              💡 <b>動画のポイント再現</b>：<br>
+              ・出力100%の状態で「回転方向」ボタンを押すと、動画（2:08〜2:15）の通り自動的に出力が0%（0V）へリセットされます。<br>
+              ・動作中に「物理SW1〜3」のいずれかをOFFにするか、緑色の非常停止パッドを1回タップすると、即座にリレーが「カチッ」と切れて0Vになります。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 動画解説・危険予知 -->
+    <section id="tab-videos" class="tab-content">
+      <div class="card">
+        <h2>🚨 「荒い運転はするな」参考動画（7秒）の解説と危険予知</h2>
+        <div class="alert-box">
+          <strong>🎬 7秒動画（ミニSL C56 624のホーム進入シーン）で起きている現象</strong>
+          多数の乗客が待つホームへ進入する際、急激な制動（ブレーキ）をかけたことで<b>動輪が完全にロックしたままレール上を滑走（スリップ）</b>し、ガタガタと激しく車体を揺らしながら停止しています。
+        </div>
+        <div class="grid-2">
+          <div style="background: var(--bg-main); padding: 14px; border-radius: 8px; border: 1px solid var(--border);">
+            <h3 style="margin-top:0; color: #f87171;">問題①：車輪の摩耗と寿命低下</h3>
+            <p style="font-size: 0.9rem;">
+              車輪がロックしたまま金属レール上を滑走すると、強い摩擦によって車輪の踏面が削れ、偏摩耗やフラットが発生して車輪の寿命が大幅に縮まります。
+            </p>
+          </div>
+          <div style="background: var(--bg-main); padding: 14px; border-radius: 8px; border: 1px solid var(--border);">
+            <h3 style="margin-top:0; color: #f87171;">問題②：逆起電力による基板の焼損（24V → 48V超）</h3>
+            <p style="font-size: 0.9rem;">
+              急減速や外力によってモータの軸が強制的に回転させられると、モータが発電機として働き<b>逆起電力</b>が発生します。これにより回路電圧が倍以上に跳ね上がり（某ゼミでは<b>24V系で48V超え</b>を観測）、基板やMOSFETが燃える原因になります。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📹 「実際の動作」解説動画（2分33秒）タイムライン早見表</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          実機の配線・LED点灯箇所・テスター電圧の推移を時間軸ごとに整理しています。
+        </p>
+        <table class="timeline-table">
+          <thead>
+            <tr>
+              <th style="width: 110px;">再生時間</th>
+              <th>動画内の操作内容</th>
+              <th>基板LED・リレー・電圧の挙動</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>0:00〜0:26</b></td>
+              <td>スマホをESP32のWi-Fiに接続し、ブラウザで <code>192.168.4.1</code> へアクセス</td>
+              <td>ESP32横の緑色LED <b><code>CTRL</code></b> が点灯し、コントローラ接続完了を示す。</td>
+            </tr>
+            <tr>
+              <td><b>0:27〜0:44</b></td>
+              <td>安定化電源（本番は鉛蓄電池）から <b>24V</b> を印加</td>
+              <td>端子台近くの駆動系赤色LED <b><code>in</code></b> が点灯（まだリレーは遮断状態のため出力は0V）。</td>
+            </tr>
+            <tr>
+              <td><b>0:45〜0:54</b></td>
+              <td>基板右側の物理スイッチ用コネクタを導通させる</td>
+              <td>非常停止LED（4連）のうち、物理スイッチ用の<b>緑色LED 3個</b>が点灯。</td>
+            </tr>
+            <tr>
+              <td><b>0:55〜1:23</b></td>
+              <td>スマホ画面右側の赤い非常停止ボタンを<b>3秒長押し</b>して解除</td>
+              <td>黄色カウントダウン後に緑色（HIGH）へ変化。4つすべての非常停止LEDが点灯し、「カチッ」とリレーが動作。<b><code>リレー</code></b>（緑）と <b><code>out</code></b>（赤）のLEDが点灯。</td>
+            </tr>
+            <tr>
+              <td><b>1:24〜1:33</b></td>
+              <td>基板右側の物理スイッチ（ピン）を抜き差しするテスト</td>
+              <td>物理スイッチを1つでも抜くと即座にリレーが「カチッ」と切れて出力遮断。戻すと再導通。</td>
+            </tr>
+            <tr>
+              <td><b>1:34〜2:07</b></td>
+              <td>スマホで <code>M1</code> または <code>M1&M2</code> を選び、左スライダーを 0% → 100% へ上げる</td>
+              <td>マルチメータのDC電圧が滑らかに上昇し、100%で電源電圧と同じ <b>24.21V</b> を出力。</td>
+            </tr>
+            <tr>
+              <td><b>2:08〜2:21</b></td>
+              <td>100%出力中に「回転方向：正転」をタップして<b>「逆転」</b>へ切り替え</td>
+              <td>安全のため<b>自動的に出力が一旦 <code>0%</code>（0.00V）にリセット</b>される。再度スライダーを上げると逆極性（<b>-24.22V</b>）まで上昇。</td>
+            </tr>
+            <tr>
+              <td><b>2:22〜2:33</b></td>
+              <td>100%出力中にスマホの緑色の非常停止パネルをタップ</td>
+              <td>ワンタップで即座に赤色（LOW）へ切り替わり、リレーが切れて出力電圧が <b>0.00V</b> に遮断される。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- Tab Switching ---
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // --- Copy Helper ---
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'コピー完了!';
+        setTimeout(() => btn.textContent = orig, 1500);
+      });
+    }
+
+    // --- 21 Steps Checklist Data ---
+    const checklistSteps = [
+      { phase: "1. 駆動電源接続前手順", id: 1, text: "ESP32の電源ステータスLED（Power）が光っていることの確認（先にUSBを接続）" },
+      { phase: "1. 駆動電源接続前手順", id: 2, text: "ESP32とスマホを接続し、ESP32のステータスLED（CTRL）が光っていることの確認" },
+      { phase: "1. 駆動電源接続前手順", id: 3, text: "遠隔非常停止（スマホ画面の3秒長押し解除・タップ停止）が正常に動作することの確認" },
+      { phase: "1. 駆動電源接続前手順", id: 4, text: "各種物理スイッチおよび非常停止スイッチの動作確認（LED点灯確認）" },
+      { phase: "1. 駆動電源接続前手順", id: 5, text: "上記のチェックが完了したら、いずれかの手段で非常停止をかけておく" },
+      { phase: "2. 駆動電源接続手順", id: 6, text: "プラケース（基板ボックス）についている物理的な主電源スイッチがOFFになっていることの確認" },
+      { phase: "2. 駆動電源接続手順", id: 7, text: "ケーブルについているテープを参考にし、極性を間違えないようにして鉛蓄電池（12V×2直列=24V）の接続を行う" },
+      { phase: "2. 駆動電源接続手順", id: 8, text: "プラケースの物理スイッチ（主電源）をONにする" },
+      { phase: "2. 駆動電源接続手順", id: 9, text: "基板上の input（in）のステータスLEDが点灯することを確認する" },
+      { phase: "3. 試運転", id: 10, text: "非常停止状態を解除する（4つの非常停止LEDすべてが点灯することを確認）" },
+      { phase: "3. 試運転", id: 11, text: "基板上の output（out）のステータスLEDが点灯することを確認する" },
+      { phase: "3. 試運転", id: 12, text: "出力を低めに設定しながらモータが駆動することを確認する" },
+      { phase: "3. 試運転", id: 13, text: "物理および遠隔非常停止が正常に機能し、リレーが遮断されることの確認" },
+      { phase: "3. 試運転", id: 14, text: "速度を上げるなどをし、負荷を増やした時にスマホ画面の電流メータの値が増えることの確認" },
+      { phase: "4. 運用時（5インチ乗車体験）", id: 15, text: "【最重点】乗降時は非常停止がかかっていることを毎回必ず確認すること（荒い運転・急制動も厳禁）" },
+      { phase: "5. 定期メンテナンス", id: 16, text: "鉛蓄電池の電圧を測定し、2個とも 12.5[V] を下回っていないことを確認する" },
+      { phase: "5. 定期メンテナンス", id: 17, text: "三端子レギュレータやMOSFETといった回路部品類全般に異常な発熱がないかを確認する（ケースファン稼働確認）" },
+      { phase: "6. 電源の切断（撤収・交換時）", id: 18, text: "いずれかの非常停止がON（停止状態）になっていることを確認する" },
+      { phase: "6. 電源の切断（撤収・交換時）", id: 19, text: "プラケースの物理スイッチ（主電源）をOFFにする" },
+      { phase: "6. 電源の切断（撤収・交換時）", id: 20, text: "鉛蓄電池を取り外す（※必ずUSBより先に鉛蓄電池を外すこと）" },
+      { phase: "6. 電源の切断（撤収・交換時）", id: 21, text: "最後にESP32の電源（USBケーブル）を取り外す" }
+    ];
+
+    let checkedState = JSON.parse(localStorage.getItem('festival2026_checks') || '{}');
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist-container');
+      container.innerHTML = '';
+      let currentPhase = '';
+
+      checklistSteps.forEach(item => {
+        if (item.phase !== currentPhase) {
+          currentPhase = item.phase;
+          const h3 = document.createElement('h3');
+          h3.textContent = currentPhase;
+          container.appendChild(h3);
+        }
+
+        const isChecked = !!checkedState[item.id];
+        const div = document.createElement('div');
+        div.className = 'check-item' + (isChecked ? ' checked' : '');
+        div.onclick = () => toggleCheck(item.id);
+
+        div.innerHTML = `
+          <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheck(${item.id});">
+          <span class="step-num">(${item.id})</span>
+          <span>${item.text}</span>
+        `;
+        container.appendChild(div);
+      });
+
+      updateProgress();
+    }
+
+    function toggleCheck(id) {
+      checkedState[id] = !checkedState[id];
+      localStorage.setItem('festival2026_checks', JSON.stringify(checkedState));
+      renderChecklist();
+    }
+
+    function updateProgress() {
+      const doneCount = checklistSteps.filter(s => checkedState[s.id]).length;
+      const pct = Math.round((doneCount / checklistSteps.length) * 100);
+      document.getElementById('check-bar').style.width = pct + '%';
+      document.getElementById('check-text').textContent = `${doneCount} / ${checklistSteps.length} 完了 (${pct}%)`;
+    }
+
+    function resetChecklist() {
+      if (confirm('チェックリストの進行状況をすべてリセットしますか？')) {
+        checkedState = {};
+        localStorage.removeItem('festival2026_checks');
+        renderChecklist();
+      }
+    }
+
+    // --- Simulator Logic ---
+    const sim = {
+      usb: false,
+      wifi: false,
+      batt: false,
+      sw1: true,
+      sw2: true,
+      sw3: true,
+      oc: false,
+      remoteReleased: false,
+      speed: 0,
+      forward: true
+    };
+
+    let holdTimer = null;
+    let holdCount = 0;
+
+    function toggleSim(key) {
+      sim[key] = !sim[key];
+      document.getElementById('btn-' + key).classList.toggle('active', sim[key]);
+
+      if (!sim.usb) {
+        sim.wifi = false;
+        sim.remoteReleased = false;
+        sim.speed = 0;
+        document.getElementById('btn-wifi').classList.remove('active');
+      }
+      if (sim.oc) {
+        sim.remoteReleased = false;
+        sim.speed = 0;
+      }
+      updateSimUI();
+    }
+
+    function startEstopHold(e) {
+      if (e) e.preventDefault();
+      if (!sim.usb || !sim.wifi) {
+        alert('先に「① USB制御電源」と「② スマホWi-Fi接続」をONにしてください。');
+        return;
+      }
+      if (sim.remoteReleased) {
+        // 解除中にタップされたら即座に非常停止（動画 2:25 の挙動）
+        sim.remoteReleased = false;
+        sim.speed = 0;
+        document.getElementById('ui-slider').value = 0;
+        updateSimUI();
+        return;
+      }
+
+      // 3秒長押しカウントダウン（動画 0:57〜1:01 の挙動）
+      holdCount = 3;
+      const btn = document.getElementById('ui-estop-btn');
+      btn.className = 'estop-pad holding';
+      document.getElementById('estop-main-label').textContent = `長押しで解除... (${holdCount})`;
+      document.getElementById('estop-sub-label').textContent = '指を離さないでください';
+
+      holdTimer = setInterval(() => {
+        holdCount--;
+        if (holdCount > 0) {
+          document.getElementById('estop-main-label').textContent = `長押しで解除... (${holdCount})`;
+        } else {
+          clearInterval(holdTimer);
+          holdTimer = null;
+          sim.remoteReleased = true;
+          updateSimUI();
+        }
+      }, 800);
+    }
+
+    function cancelEstopHold() {
+      if (holdTimer) {
+        clearInterval(holdTimer);
+        holdTimer = null;
+        updateSimUI();
+      }
+    }
+
+    function updateSpeed(val) {
+      sim.speed = parseInt(val, 10);
+      updateSimUI();
+    }
+
+    function toggleDirection() {
+      if (!sim.usb || !sim.wifi) return;
+      // 動画 2:09〜2:14 の仕様：正転/逆転を切り替えると一旦自動で 0% に戻る
+      sim.forward = !sim.forward;
+      sim.speed = 0;
+      document.getElementById('ui-slider').value = 0;
+      updateSimUI();
+    }
+
+    function setLed(id, state, colorClass = 'on-green') {
+      const el = document.getElementById(id);
+      el.className = 'led-bulb' + (state ? ' ' + colorClass : '');
+    }
+
+    function updateSimUI() {
+      // 1. 電源系 & ステータス系LED
+      setLed('led-5v', sim.usb, 'on-green');
+      setLed('led-3v3', sim.usb, 'on-green');
+      setLed('led-pwr', sim.usb, 'on-green');
+      setLed('led-ctrl', sim.usb && sim.wifi, 'on-green');
+      setLed('led-oc', sim.usb && sim.oc, 'on-red');
+
+      // 2. 非常停止LED (4個)
+      const esRem = sim.usb && sim.wifi && sim.remoteReleased && !sim.oc;
+      const es1 = sim.usb && sim.sw1;
+      const es2 = sim.usb && sim.sw2;
+      const es3 = sim.usb && sim.sw3;
+
+      setLed('led-es-rem', esRem, 'on-green');
+      setLed('led-es-1', es1, 'on-green');
+      setLed('led-es-2', es2, 'on-green');
+      setLed('led-es-3', es3, 'on-green');
+
+      const allEstopClear = esRem && es1 && es2 && es3;
+
+      // 3. 駆動系LED & リレー
+      const drvIn = sim.batt;
+      const relayOn = allEstopClear;
+      const drvOut = drvIn && relayOn;
+
+      setLed('led-drv-in', drvIn, 'on-red');
+      setLed('led-drv-rel', relayOn, 'on-green');
+      setLed('led-drv-out', drvOut, 'on-red');
+
+      const relayBox = document.getElementById('relay-status');
+      if (relayOn) {
+        relayBox.textContent = '🔊 リレー状態：導通中 (カチッ！ ON)';
+        relayBox.classList.add('active');
+      } else {
+        relayBox.textContent = 'リレー状態：遮断中 (OFF)';
+        relayBox.classList.remove('active');
+      }
+
+      // 4. スマホUI更新
+      const slider = document.getElementById('ui-slider');
+      slider.disabled = !(sim.usb && sim.wifi && esRem);
+      if (!esRem) {
+        sim.speed = 0;
+        slider.value = 0;
+      }
+
+      document.getElementById('ui-speed-text').textContent = sim.speed + '%';
+
+      const dirBtn = document.getElementById('ui-dir-btn');
+      dirBtn.textContent = sim.forward ? '回転方向: 正転' : '回転方向: 逆転';
+      dirBtn.className = sim.forward ? 'dir-btn' : 'dir-btn rev';
+
+      const estopBtn = document.getElementById('ui-estop-btn');
+      const io34Banner = document.getElementById('ui-io34-banner');
+
+      if (esRem) {
+        estopBtn.className = 'estop-pad released';
+        document.getElementById('estop-main-label').textContent = '非常停止出力 (IO33): HIGH';
+        document.getElementById('estop-sub-label').textContent = '(タップで非常停止/LOW)';
+      } else {
+        estopBtn.className = 'estop-pad stopped';
+        document.getElementById('estop-main-label').textContent = '非常停止出力 (IO33): LOW';
+        document.getElementById('estop-sub-label').textContent = '(3秒長押しで許可/HIGH)';
+      }
+
+      if (drvOut) {
+        io34Banner.style.background = '#064e3b';
+        io34Banner.style.color = '#6ee7b7';
+        io34Banner.textContent = 'IO34非常停止: 正常 (解除)';
+      } else {
+        io34Banner.style.background = '#450a0a';
+        io34Banner.style.color = '#fca5a5';
+        io34Banner.textContent = 'IO34非常停止: 未印加 (停止)';
+      }
+
+      // 5. マルチメータ電圧 & 電流計算
+      let voltage = 0;
+      let current = 0;
+      if (drvOut) {
+        voltage = (24.21 * (sim.speed / 100)) * (sim.forward ? 1 : -1);
+        current = (sim.speed / 100) * 1.85;
+      }
+      document.getElementById('meter-voltage').textContent = voltage.toFixed(2) + ' V';
+      document.getElementById('ui-curr').textContent = current.toFixed(2);
+    }
+
+    // 初期化
+    renderChecklist();
+    updateSimUI();
+  </script>
+</body>
+</html>
